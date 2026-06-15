@@ -30,9 +30,15 @@ if not all([AWS_REGION, SQS_QUEUE_URL, DYNAMODB_TABLE_NAME]):
 # Criamos a sessão uma vez
 try:
     session = boto3.Session(region_name=AWS_REGION)
-    sqs_client = session.client("sqs")
-    dynamodb_client = session.client("dynamodb")
-    log.info(f"Clientes Boto3 inicializados na região {AWS_REGION}")
+    aws_endpoint = os.getenv("AWS_ENDPOINT_URL")
+    if aws_endpoint:
+        sqs_client = session.client("sqs", endpoint_url=aws_endpoint)
+        dynamodb_client = session.client("dynamodb", endpoint_url=aws_endpoint)
+        log.info(f"Clientes Boto3 inicializados com endpoint customizado {aws_endpoint}")
+    else:
+        sqs_client = session.client("sqs")
+        dynamodb_client = session.client("dynamodb")
+        log.info(f"Clientes Boto3 inicializados na região {AWS_REGION}")
 except NoCredentialsError:
     log.critical("Credenciais da AWS não encontradas. Verifique seu ambiente.")
     sys.exit(1)
